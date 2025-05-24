@@ -19,6 +19,17 @@ st.write("Masukkan spesifikasi mobil untuk memprediksi harga jualnya.")
 
 # Input pengguna lewat form
 brand_input = st.selectbox("Merek Mobil", brand_options)
+
+# Buat dictionary brand -> list of model
+model_per_brand = {
+    brand: [m for m in model_options if m.startswith(brand.lower())]
+    for brand in brand_options
+}
+
+# Update daftar model berdasarkan brand yang dipilih
+filtered_models = model_per_brand.get(brand_input, [])
+model_input = st.selectbox("Model Mobil", filtered_models)
+
 model_input = st.selectbox("Model Mobil", model_options)
 year_input = st.number_input("Tahun Mobil", min_value=2011, max_value=2020, value=2015)
 transmission_input = st.selectbox("Jenis Transmisi", transmission_options)
