@@ -6,11 +6,11 @@ import pandas as pd
 model = pickle.load(open('best_random_forest_model.sav', 'rb'))
 encoders = pickle.load(open('best_label_encoders.sav', 'rb'))
 
-# Ambil opsi dari encoder yang sudah dipelajari
+# Ambil opsi dari encoder yang sudah dipelajari (sesuaikan huruf besar kecil sesuai key)
 brand_options = list(encoders['brand'].classes_)
 model_options = list(encoders['model'].classes_)
 transmission_options = list(encoders['transmission'].classes_)
-fueltype_options = list(encoders['fueltype'].classes_)
+fueltype_options = list(encoders['fuelType'].classes_)
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Prediksi Harga Mobil Bekas", layout="centered")
@@ -45,14 +45,14 @@ input_data = pd.DataFrame({
     'year': [year_input],
     'transmission': [transmission_input],
     'mileage': [mileage_mil],
-    'fueltype': [fueltype_input],
+    'fuelType': [fueltype_input],       # Huruf T kapital sesuai encoder
     'tax': [tax_pound],
     'mpg': [mpg_input],
     'enginesize': [enginesize_input]
 })
 
 # Encoding fitur kategorikal
-for col in ['brand', 'model', 'transmission', 'fueltype']:
+for col in ['brand', 'model', 'transmission', 'fuelType']:
     encoder = encoders.get(col)
     if encoder:
         input_data[col] = encoder.transform(input_data[col])
