@@ -65,3 +65,7 @@ if st.button("Prediksi Harga"):
     harga_rupiah = int(predicted_price * 21000)
     
     st.success(f"Perkiraan Harga Mobil Bekas: Rp {harga_rupiah:,.0f}")
+
+# Footer
+st.markdown("---")
+st.markdown("**Nama :** Muhammad Istiqlal  \n**NPM :** 51421006  \n**Skripsi Jurusan Informatika – Universitas Gunadarma**")
