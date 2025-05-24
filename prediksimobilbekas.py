@@ -6,14 +6,18 @@ import pandas as pd
 model = pickle.load(open('best_random_forest_model.sav', 'rb'))
 encoders = pickle.load(open('best_label_encoders.sav', 'rb'))
 
-# Load mapping brand -> model dari pickle
+# Load dataframe brand-model mapping dari pickle
 with open('brand_model_mapping.pkl', 'rb') as f:
     brand_model_df = pickle.load(f)
 
-# Ambil daftar brand unik (urutkan)
+# Bersihkan spasi di brand dan model
+brand_model_df['brand'] = brand_model_df['brand'].str.strip()
+brand_model_df['model'] = brand_model_df['model'].str.strip()
+
+# Ambil daftar brand unik, urutkan
 brand_options = sorted(brand_model_df['brand'].unique())
 
-# Konfigurasi halaman
+# Konfigurasi halaman Streamlit
 st.set_page_config(page_title="Prediksi Harga Mobil Bekas", layout="centered")
 st.title("Prediksi Harga Mobil Bekas")
 st.write("Masukkan spesifikasi mobil untuk memprediksi harga jualnya.")
@@ -21,11 +25,11 @@ st.write("Masukkan spesifikasi mobil untuk memprediksi harga jualnya.")
 # Pilih brand
 brand_input = st.selectbox("Merek Mobil", brand_options)
 
-# Filter model berdasarkan brand yang dipilih
+# Filter model sesuai brand
 filtered_models = brand_model_df.loc[brand_model_df['brand'] == brand_input, 'model'].unique()
-filtered_models = sorted(filtered_models)
+filtered_models = sorted([m.strip() for m in filtered_models])
 
-# Pilih model dari filtered list
+# Pilih model sesuai filter brand
 model_input = st.selectbox("Model Mobil", filtered_models)
 
 # Input lain
@@ -40,18 +44,18 @@ tax_rupiah = st.number_input("Biaya Pajak (Rupiah)", min_value=0, value=3150000)
 mpg_input = st.number_input("Konsumsi BBM (mpg)", min_value=0.0, value=50.0)
 enginesize_input = st.number_input("Ukuran Mesin (L)", min_value=0.0, value=1.4)
 
-# Konversi
+# Konversi satuan
 mileage_mil = mileage_km / 1.60934
 tax_pound = tax_rupiah / 21000
 
-# Siapkan dataframe input
+# Siapkan DataFrame input
 input_data = pd.DataFrame({
-    'brand': [brand_input],
-    'model': [model_input],
+    'brand': [brand_input.strip()],
+    'model': [model_input.strip()],
     'year': [year_input],
-    'transmission': [transmission_input],
+    'transmission': [transmission_input.strip()],
     'mileage': [mileage_mil],
-    'fuelType': [fueltype_input],
+    'fuelType': [fueltype_input.strip()],
     'tax': [tax_pound],
     'mpg': [mpg_input],
     'engineSize': [enginesize_input]
@@ -65,9 +69,10 @@ for col in ['brand', 'model', 'transmission', 'fuelType']:
         if val not in encoder.classes_:
             st.error(f"❌ Nilai '{val}' tidak ditemukan pada opsi {col}.")
             st.stop()
-        input_data[col] = encoder.transform(input_data[col])
+        # Encode dengan transform dari list
+        input_data[col] = encoder.transform([val])
 
-# Pastikan urutan kolom sesuai saat training
+# Pastikan urutan kolom sesuai fitur model
 input_data = input_data[list(model.feature_names_in_)]
 
 # Tombol prediksi
