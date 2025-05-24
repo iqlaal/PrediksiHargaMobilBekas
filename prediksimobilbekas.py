@@ -20,7 +20,7 @@ st.write("Masukkan spesifikasi mobil untuk memprediksi harga jualnya.")
 # Input pengguna lewat form
 brand_input = st.selectbox("Merek Mobil", brand_options)
 model_input = st.selectbox("Model Mobil", model_options)
-year_input = st.number_input("Tahun Mobil", min_value=2000, max_value=2023, value=2015)
+year_input = st.number_input("Tahun Mobil", min_value=2011, max_value=2020, value=2015)
 transmission_input = st.selectbox("Jenis Transmisi", transmission_options)
 mileage_km = st.number_input("Jarak Tempuh (kilometer)", min_value=0, value=48000)
 fueltype_input = st.selectbox("Jenis Bahan Bakar", fueltype_options)
