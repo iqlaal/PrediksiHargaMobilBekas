@@ -86,11 +86,14 @@ for col in ['brand', 'model', 'transmission', 'fuelType']:
 # Pastikan urutan kolom sesuai model
 input_data = input_data[list(model.feature_names_in_)]
 
-# Tombol dan hasil prediksi berdampingan dengan jarak rapat
-col1, col2 = st.columns([1, 2])  # Kolom hasil sedikit lebih lebar
+# Buat 3 kolom: tombol, spacer, hasil prediksi
+col1, col_spacer, col2 = st.columns([3, 0.3, 4])
 
 with col1:
     pred_button = st.button("Prediksi Harga")
+
+with col_spacer:
+    st.write("")  # spacer kosong buat jarak 1 unit
 
 with col2:
     if pred_button:
@@ -103,7 +106,7 @@ with col2:
         harga_rupiah = int(predicted_price * kurs_gbp_to_idr * faktor_penyesuaian)
         st.success(f"Perkiraan Harga Mobil Bekas: Rp {harga_rupiah:,.0f}")
     else:
-        st.write("")  # Supaya kolom hasil tetap ada ruang
+        st.write("")
 
 # Footer
 st.markdown("---")
