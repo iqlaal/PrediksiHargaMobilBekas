@@ -32,29 +32,29 @@ filtered_models = sorted([m.strip() for m in filtered_models])
 # Pilih model sesuai filter brand
 model_input = st.selectbox("Model Mobil", filtered_models)
 
-# Input lain
+# Input lainnya
 transmission_options = list(encoders['transmission'].classes_)
 fueltype_options = list(encoders['fuelType'].classes_)
 
-year_input = st.number_input("Tahun Mobil", min_value=2011, max_value=2020, value=2015)
+year_input = st.number_input("Tahun Mobil", min_value=2011, max_value=2020, value=0)
 transmission_input = st.selectbox("Jenis Transmisi", transmission_options)
-mileage_km = st.number_input("Jarak Tempuh (kilometer)", min_value=0, value=48000)
+mileage_km = st.number_input("Jarak Tempuh (kilometer)", min_value=0, value=0)
 fueltype_input = st.selectbox("Jenis Bahan Bakar", fueltype_options)
-tax_rupiah = st.number_input("Biaya Pajak (Rupiah)", min_value=0, value=3150000)
-mpg_input = st.number_input("Konsumsi BBM (mpg)", min_value=0.0, value=50.0)
-enginesize_input = st.number_input("Ukuran Mesin (L)", min_value=0.0, value=1.4)
+tax_rupiah = st.number_input("Biaya Pajak (Rupiah)", min_value=0, value=0)
+mpg_input = st.number_input("Konsumsi BBM (mpg)", min_value=0.0, value=00.0)
+enginesize_input = st.number_input("Ukuran Mesin (L)", min_value=0.0, value=0.0)
 
 # Fungsi validasi input numerik
-def cek_input_valid(nilai, nama_field):
+def cek_input_valid(nilai):
     if nilai <= 0:
-        st.warning(f"⚠️ Harap lengkapi data, data tidak boleh kosong pada {nama_field}.")
+        st.warning("⚠️ Harap lengkapi data, data tidak boleh kosong.")
         st.stop()
 
-# Panggil fungsi validasi untuk tiap input penting
-cek_input_valid(mileage_km, "Jarak Tempuh")
-cek_input_valid(tax_rupiah, "Biaya Pajak")
-cek_input_valid(mpg_input, "Konsumsi BBM")
-cek_input_valid(enginesize_input, "Ukuran Mesin")
+# Validasi input numerik
+cek_input_valid(mileage_km)
+cek_input_valid(tax_rupiah)
+cek_input_valid(mpg_input)
+cek_input_valid(enginesize_input)
 
 # Konversi satuan
 mileage_mil = mileage_km / 1.60934
@@ -73,17 +73,17 @@ input_data = pd.DataFrame({
     'engineSize': [enginesize_input]
 })
 
-# Encode fitur kategorikal dengan validasi
+# Encode fitur kategorikal
 for col in ['brand', 'model', 'transmission', 'fuelType']:
     encoder = encoders.get(col)
     if encoder:
         val = input_data.at[0, col]
         if val not in encoder.classes_:
-            st.error(f"❌ Nilai '{val}' tidak ditemukan pada opsi {col}.")
+            st.error("⚠️ Harap lengkapi data, data tidak boleh kosong.")
             st.stop()
         input_data[col] = encoder.transform([val])
 
-# Pastikan urutan kolom sesuai fitur model
+# Pastikan urutan kolom sesuai model
 input_data = input_data[list(model.feature_names_in_)]
 
 # Tombol prediksi
