@@ -86,22 +86,25 @@ for col in ['brand', 'model', 'transmission', 'fuelType']:
 # Pastikan urutan kolom sesuai model
 input_data = input_data[list(model.feature_names_in_)]
 
-# Tombol prediksi dan hasil prediksi berdampingan
-col1, col2 = st.columns([1, 1])
+# Tombol dan hasil prediksi berdampingan dengan jarak
+col1, col2 = st.columns([1, 1.5])
 
 with col1:
     pred_button = st.button("Prediksi Harga")
 
 with col2:
+    st.write("")  # spasi atas supaya tidak terlalu mepet
     if pred_button:
         predicted_price = model.predict(input_data)[0]
 
-        # Gunakan kurs dan faktor penyesuaian
+        # Konversi kurs dan penyesuaian
         kurs_gbp_to_idr = 21000
-        faktor_penyesuaian = 0.4  # Untuk menyesuaikan prediksi agar mendekati harga pasar Indonesia
+        faktor_penyesuaian = 0.4
 
         harga_rupiah = int(predicted_price * kurs_gbp_to_idr * faktor_penyesuaian)
         st.success(f"Perkiraan Harga Mobil Bekas: Rp {harga_rupiah:,.0f}")
+    else:
+        st.write("")
 
 # Footer
 st.markdown("---")
