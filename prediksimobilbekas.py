@@ -76,7 +76,7 @@ for col in ['brand', 'model', 'transmission', 'fuelType']:
 input_data = input_data[list(model.feature_names_in_)]
 
 # Buat dua kolom, yang kiri untuk tombol, kanan untuk hasil prediksi tanpa jarak (mepet)
-col_button, col_result = st.columns([3, 8])
+col_button, col_result = st.columns([3, 15])
 
 with col_button:
     pred_button = st.button("Prediksi Harga")
