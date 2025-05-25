@@ -36,13 +36,13 @@ model_input = st.selectbox("Model Mobil", filtered_models)
 transmission_options = list(encoders['transmission'].classes_)
 fueltype_options = list(encoders['fuelType'].classes_)
 
-year_input = st.number_input("Tahun Mobil", min_value=2011, max_value=2020, value=0)
+year_input = st.number_input("Tahun Mobil", min_value=2011, max_value=2020, value=2020)
 transmission_input = st.selectbox("Jenis Transmisi", transmission_options)
-mileage_km = st.number_input("Jarak Tempuh (kilometer)", min_value=0, value=0)
+mileage_km = st.number_input("Jarak Tempuh (kilometer)", min_value=0, value=50000)
 fueltype_input = st.selectbox("Jenis Bahan Bakar", fueltype_options)
-tax_rupiah = st.number_input("Biaya Pajak (Rupiah)", min_value=0, value=0)
-mpg_input = st.number_input("Konsumsi BBM (mpg)", min_value=0.0, value=00.0)
-enginesize_input = st.number_input("Ukuran Mesin (L)", min_value=0.0, value=0.0)
+tax_rupiah = st.number_input("Biaya Pajak (Rupiah)", min_value=0, value=2000000)
+mpg_input = st.number_input("Konsumsi BBM (mpg)", min_value=0.0, value=40.0)
+enginesize_input = st.number_input("Ukuran Mesin (L)", min_value=0.0, value=1.5)
 
 # Fungsi validasi input numerik
 def cek_input_valid(nilai):
