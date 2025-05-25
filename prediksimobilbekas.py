@@ -44,6 +44,20 @@ tax_rupiah = st.number_input("Biaya Pajak (Rupiah)", min_value=0, value=3150000)
 mpg_input = st.number_input("Konsumsi BBM (mpg)", min_value=0.0, value=50.0)
 enginesize_input = st.number_input("Ukuran Mesin (L)", min_value=0.0, value=1.4)
 
+# Validasi input numerik
+if mileage_km <= 0:
+    st.warning("⚠️ Jarak tempuh tidak boleh kosong atau nol.")
+    st.stop()
+if tax_rupiah <= 0:
+    st.warning("⚠️ Biaya pajak tidak boleh kosong atau nol.")
+    st.stop()
+if mpg_input <= 0:
+    st.warning("⚠️ Konsumsi BBM (mpg) tidak boleh kosong atau nol.")
+    st.stop()
+if enginesize_input <= 0:
+    st.warning("⚠️ Ukuran mesin tidak boleh kosong atau nol.")
+    st.stop()
+
 # Konversi satuan
 mileage_mil = mileage_km / 1.60934
 tax_pound = tax_rupiah / 21000
