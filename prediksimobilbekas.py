@@ -87,7 +87,7 @@ with col_result:
         kurs_gbp_to_idr = 21000
         faktor_penyesuaian = 0.4
         harga_rupiah = int(predicted_price * kurs_gbp_to_idr * faktor_penyesuaian)
-        st.success(f"Perkiraan Harga Mobil Bekas: Rp {harga_rupiah:,.0f}", icon="✅")
+        st.success(f"Perkiraan Harga Mobil Bekas: Rp {harga_rupiah:,.0f}")
     else:
         st.write("")
 
