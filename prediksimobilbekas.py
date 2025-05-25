@@ -89,7 +89,12 @@ input_data = input_data[list(model.feature_names_in_)]
 # Tombol prediksi
 if st.button("Prediksi Harga"):
     predicted_price = model.predict(input_data)[0]
-    harga_rupiah = int(predicted_price * 21000)
+    
+    # Gunakan kurs dan faktor penyesuaian
+    kurs_gbp_to_idr = 21000
+    faktor_penyesuaian = 0.4  # Untuk menyesuaikan prediksi agar mendekati harga pasar Indonesia
+
+    harga_rupiah = int(predicted_price * kurs_gbp_to_idr * faktor_penyesuaian)
     st.success(f"Perkiraan Harga Mobil Bekas: Rp {harga_rupiah:,.0f}")
 
 # Footer
