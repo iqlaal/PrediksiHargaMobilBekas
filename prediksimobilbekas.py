@@ -49,6 +49,7 @@ cek_input_valid(tax_rupiah)
 cek_input_valid(mpg_input)
 cek_input_valid(enginesize_input)
 
+# Konversi satuan dan siapkan data prediksi
 mileage_mil = mileage_km / 1.60934
 tax_pound = tax_rupiah / 21000
 
@@ -64,6 +65,7 @@ input_data = pd.DataFrame({
     'engineSize': [enginesize_input]
 })
 
+# Encoding label
 for col in ['brand', 'model', 'transmission', 'fuelType']:
     encoder = encoders.get(col)
     if encoder:
@@ -73,9 +75,10 @@ for col in ['brand', 'model', 'transmission', 'fuelType']:
             st.stop()
         input_data[col] = encoder.transform([val])
 
+# Pastikan urutan kolom sesuai model
 input_data = input_data[list(model.feature_names_in_)]
 
-# Buat dua kolom, yang kiri untuk tombol, kanan untuk hasil prediksi tanpa jarak (mepet)
+# Buat dua kolom untuk tombol dan hasil
 col_button, col_result = st.columns([3, 13])
 
 with col_button:
@@ -85,11 +88,19 @@ with col_result:
     if pred_button:
         predicted_price = model.predict(input_data)[0]
         kurs_gbp_to_idr = 21000
-        faktor_penyesuaian = 0.4
+
+        # Penyesuaian berdasarkan merek
+        brand_factors = {
+            'Hyundai': 0.75,
+            'Ford': 0.65
+        }
+        faktor_penyesuaian = brand_factors.get(brand_input, 0.7)  # 0.7 jika merek tidak ditemukan
+
         harga_rupiah = int(predicted_price * kurs_gbp_to_idr * faktor_penyesuaian)
         st.success(f"Perkiraan Harga Mobil Bekas: Rp {harga_rupiah:,.0f}")
     else:
         st.write("")
 
+# Footer
 st.markdown("---")
 st.markdown("**Nama :** Muhammad Istiqlal  \n**NPM :** 51421006  \n**Skripsi Jurusan Informatika – Universitas Gunadarma**")
