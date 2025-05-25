@@ -87,8 +87,7 @@ with col_result:
         kurs_gbp_to_idr = 21000
         faktor_penyesuaian = 0.4
         harga_rupiah = int(predicted_price * kurs_gbp_to_idr * faktor_penyesuaian)
-        # Gunakan markdown inline style tanpa margin agar mepet ke tombol
-        st.markdown(f"<div style='margin-left: 5px; display:inline-block; font-weight:bold; font-size:1.2em; color:green;'>Perkiraan Harga Mobil Bekas: Rp {harga_rupiah:,.0f}</div>", unsafe_allow_html=True)
+        st.success(f"Perkiraan Harga Mobil Bekas: Rp {harga_rupiah:,.0f}", icon="✅")
     else:
         st.write("")
 
