@@ -44,19 +44,17 @@ tax_rupiah = st.number_input("Biaya Pajak (Rupiah)", min_value=0, value=3150000)
 mpg_input = st.number_input("Konsumsi BBM (mpg)", min_value=0.0, value=50.0)
 enginesize_input = st.number_input("Ukuran Mesin (L)", min_value=0.0, value=1.4)
 
-# Validasi input numerik
-if mileage_km <= 0:
-    st.warning("⚠️ Jarak tempuh tidak boleh kosong atau nol.")
-    st.stop()
-if tax_rupiah <= 0:
-    st.warning("⚠️ Biaya pajak tidak boleh kosong atau nol.")
-    st.stop()
-if mpg_input <= 0:
-    st.warning("⚠️ Konsumsi BBM (mpg) tidak boleh kosong atau nol.")
-    st.stop()
-if enginesize_input <= 0:
-    st.warning("⚠️ Ukuran mesin tidak boleh kosong atau nol.")
-    st.stop()
+# Fungsi validasi input numerik
+def cek_input_valid(nilai, nama_field):
+    if nilai <= 0:
+        st.warning(f"⚠️ Harap lengkapi data, data tidak boleh kosong pada {nama_field}.")
+        st.stop()
+
+# Panggil fungsi validasi untuk tiap input penting
+cek_input_valid(mileage_km, "Jarak Tempuh")
+cek_input_valid(tax_rupiah, "Biaya Pajak")
+cek_input_valid(mpg_input, "Konsumsi BBM")
+cek_input_valid(enginesize_input, "Ukuran Mesin")
 
 # Konversi satuan
 mileage_mil = mileage_km / 1.60934
@@ -83,7 +81,6 @@ for col in ['brand', 'model', 'transmission', 'fuelType']:
         if val not in encoder.classes_:
             st.error(f"❌ Nilai '{val}' tidak ditemukan pada opsi {col}.")
             st.stop()
-        # Encode dengan transform dari list
         input_data[col] = encoder.transform([val])
 
 # Pastikan urutan kolom sesuai fitur model
