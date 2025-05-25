@@ -86,8 +86,8 @@ for col in ['brand', 'model', 'transmission', 'fuelType']:
 # Pastikan urutan kolom sesuai model
 input_data = input_data[list(model.feature_names_in_)]
 
-# Tombol dan hasil prediksi berdampingan dengan posisi hasil naik sedikit
-col1, col2 = st.columns([1, 3])  # kolom hasil dibuat lebih lebar
+# Tombol dan hasil prediksi berdampingan dengan jarak rapat
+col1, col2 = st.columns([1, 2])  # Kolom hasil sedikit lebih lebar
 
 with col1:
     pred_button = st.button("Prediksi Harga")
@@ -101,13 +101,9 @@ with col2:
         faktor_penyesuaian = 0.4
 
         harga_rupiah = int(predicted_price * kurs_gbp_to_idr * faktor_penyesuaian)
-        # Pakai markdown dengan margin-top untuk posisi hasil sedikit naik
-        st.markdown(f"<div style='margin-top:10px;'>"
-                    f"<span style='font-size:18px; color:green; font-weight:bold;'>"
-                    f"Perkiraan Harga Mobil Bekas: Rp {harga_rupiah:,.0f}"
-                    f"</span></div>", unsafe_allow_html=True)
+        st.success(f"Perkiraan Harga Mobil Bekas: Rp {harga_rupiah:,.0f}")
     else:
-        st.write("")  # ruang kosong supaya layout tetap rapi
+        st.write("")  # Supaya kolom hasil tetap ada ruang
 
 # Footer
 st.markdown("---")
