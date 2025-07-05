@@ -22,7 +22,7 @@ st.set_page_config(page_title="Prediksi Harga Mobil Bekas", layout="centered")
 st.title("Prediksi Harga Mobil Bekas")
 st.write("Masukkan spesifikasi mobil untuk memprediksi harga jualnya saat ini dan di masa mendatang.")
 
-# Input pengguna
+# Input user
 brand_input = st.selectbox("Merek Mobil", brand_options)
 filtered_models = brand_model_df.loc[brand_model_df['brand'] == brand_input, 'model'].unique()
 filtered_models = sorted([m.strip() for m in filtered_models])
@@ -39,6 +39,9 @@ tax_rupiah = st.number_input("Biaya Pajak (Rupiah)", min_value=0, value=2000000)
 mpg_input = st.number_input("Konsumsi BBM (mpg)", min_value=0.0, value=40.0)
 enginesize_input = st.number_input("Ukuran Mesin (L)", min_value=0.0, value=1.5)
 
+# Input untuk berapa bulan ke depan prediksi
+bulan_prediksi = st.number_input("Prediksi untuk berapa bulan ke depan?", min_value=0, max_value=60, value=12, step=1)
+
 def cek_input_valid(nilai):
     if nilai <= 0:
         st.warning("⚠️ Harap lengkapi data, data tidak boleh kosong.")
@@ -53,8 +56,8 @@ cek_input_valid(enginesize_input)
 mileage_mil = mileage_km / 1.60934
 tax_pound = tax_rupiah / 21000
 
-# Siapkan data input dasar
-input_base = pd.DataFrame({
+# Siapkan DataFrame input untuk prediksi
+input_data = pd.DataFrame({
     'brand': [brand_input.strip()],
     'model': [model_input.strip()],
     'year': [year_input],
@@ -66,48 +69,51 @@ input_base = pd.DataFrame({
     'engineSize': [enginesize_input]
 })
 
-# Label Encoding
+# Encoding label untuk kolom kategorikal
 for col in ['brand', 'model', 'transmission', 'fuelType']:
     encoder = encoders.get(col)
     if encoder:
-        val = input_base.at[0, col]
+        val = input_data.at[0, col]
         if val not in encoder.classes_:
             st.error(f"⚠️ Nilai '{val}' tidak dikenali dalam kolom '{col}'.")
             st.stop()
-        input_base[col] = encoder.transform([val])
+        input_data[col] = encoder.transform([val])
 
-# Dua kolom
-col_btn, col_hasil = st.columns([3, 13])
+# Fungsi prediksi bertahap untuk bulan ke depan
+def prediksi_berkala(input_base, model, bulan_max, kurs, faktor_merk):
+    hasil = []
+    for bulan in range(0, bulan_max + 1):
+        input_bulan = input_base.copy()
+        input_bulan['month'] = bulan
+        # Pastikan urutan kolom sesuai model
+        input_bulan = input_bulan[model.feature_names_in_]
+        pred_gbp = model.predict(input_bulan)[0]
+        pred_rp = int(pred_gbp * kurs * faktor_merk)
+        label = "Harga Saat Ini" if bulan == 0 else f"{bulan} bulan ke depan"
+        hasil.append((label, pred_rp))
+    return hasil
 
-with col_btn:
+# Tombol prediksi dan tampilan hasil
+col_button, col_result = st.columns([3, 13])
+
+with col_button:
     pred_button = st.button("Prediksi Harga")
 
-with col_hasil:
+with col_result:
     if pred_button:
-        kurs = 21000
-        brand_factors = {'Hyundai': 0.75, 'Ford': 0.65}
+        kurs_gbp_to_idr = 21000
+        brand_factors = {
+            'Hyundai': 0.75,
+            'Ford': 0.65
+        }
         faktor_penyesuaian = brand_factors.get(brand_input, 0.7)
 
-        bulan_ke_depan = [0, 1, 2, 3, 6, 12, 24]
-        hasil_prediksi = []
-
-        for bulan in bulan_ke_depan:
-            input_copy = input_base.copy()
-            input_copy['month'] = bulan
-            input_copy = input_copy[list(model.feature_names_in_)]
-
-            pred_gbp = model.predict(input_copy)[0]
-            pred_rp = int(pred_gbp * kurs * faktor_penyesuaian)
-
-            label = "Harga Saat Ini" if bulan == 0 else f"{bulan} bulan ke depan"
-            hasil_prediksi.append((label, pred_rp))
+        hasil_prediksi = prediksi_berkala(input_data, model, bulan_prediksi, kurs_gbp_to_idr, faktor_penyesuaian)
 
         st.success("✅ Hasil Prediksi Harga Mobil:")
         for label, harga in hasil_prediksi:
-            st.write(f"**{label}:** Rp {harga:,.0f}")
-    else:
-        st.write("")
+            st.markdown(f"🔹 **{label}:** Rp {harga:,.0f}")
 
 # Footer
 st.markdown("---")
-st.markdown("**Nama :** Muhammad Istiqlal  \\n**NPM :** 51421006  \\n**Skripsi Jurusan Informatika – Universitas Gunadarma**")
+st.markdown("**Nama :** Muhammad Istiqlal  \n**NPM :** 51421006  \n**Skripsi Jurusan Informatika – Universitas Gunadarma**")
