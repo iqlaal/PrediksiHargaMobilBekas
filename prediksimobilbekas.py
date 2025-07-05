@@ -22,7 +22,7 @@ st.set_page_config(page_title="Prediksi Harga Mobil Bekas", layout="centered")
 st.title("Prediksi Harga Mobil Bekas")
 st.write("Masukkan spesifikasi mobil untuk memprediksi harga jualnya saat ini dan di masa mendatang.")
 
-# Input
+# Input pengguna
 brand_input = st.selectbox("Merek Mobil", brand_options)
 filtered_models = brand_model_df.loc[brand_model_df['brand'] == brand_input, 'model'].unique()
 filtered_models = sorted([m.strip() for m in filtered_models])
@@ -49,11 +49,12 @@ cek_input_valid(tax_rupiah)
 cek_input_valid(mpg_input)
 cek_input_valid(enginesize_input)
 
-# Konversi satuan dan siapkan data prediksi
+# Konversi satuan
 mileage_mil = mileage_km / 1.60934
 tax_pound = tax_rupiah / 21000
 
-input_data = pd.DataFrame({
+# Siapkan data input dasar
+input_base = pd.DataFrame({
     'brand': [brand_input.strip()],
     'model': [model_input.strip()],
     'year': [year_input],
@@ -65,49 +66,42 @@ input_data = pd.DataFrame({
     'engineSize': [enginesize_input]
 })
 
-# Encoding label
+# Label Encoding
 for col in ['brand', 'model', 'transmission', 'fuelType']:
     encoder = encoders.get(col)
     if encoder:
-        val = input_data.at[0, col]
+        val = input_base.at[0, col]
         if val not in encoder.classes_:
             st.error(f"⚠️ Nilai '{val}' tidak dikenali dalam kolom '{col}'.")
             st.stop()
-        input_data[col] = encoder.transform([val])
+        input_base[col] = encoder.transform([val])
 
-# Buat dua kolom untuk tombol dan hasil
-col_button, col_result = st.columns([3, 13])
+# Dua kolom
+col_btn, col_hasil = st.columns([3, 13])
 
-with col_button:
+with col_btn:
     pred_button = st.button("Prediksi Harga")
 
-with col_result:
+with col_hasil:
     if pred_button:
-        kurs_gbp_to_idr = 21000
-        brand_factors = {
-            'Hyundai': 0.75,
-            'Ford': 0.65
-        }
+        kurs = 21000
+        brand_factors = {'Hyundai': 0.75, 'Ford': 0.65}
         faktor_penyesuaian = brand_factors.get(brand_input, 0.7)
 
         bulan_ke_depan = [0, 1, 2, 3, 6, 12, 24]
         hasil_prediksi = []
 
         for bulan in bulan_ke_depan:
-            input_bulan = input_data.copy()
-            input_bulan['month'] = bulan  # tambahkan kolom month
+            input_copy = input_base.copy()
+            input_copy['month'] = bulan
+            input_copy = input_copy[list(model.feature_names_in_)]
 
-            pred_gbp = model.predict(input_bulan)[0]
-            pred_rp = int(pred_gbp * kurs_gbp_to_idr * faktor_penyesuaian)
+            pred_gbp = model.predict(input_copy)[0]
+            pred_rp = int(pred_gbp * kurs * faktor_penyesuaian)
 
-            if bulan == 0:
-                label = "Harga Saat Ini"
-            else:
-                label = f"{bulan} bulan ke depan"
-
+            label = "Harga Saat Ini" if bulan == 0 else f"{bulan} bulan ke depan"
             hasil_prediksi.append((label, pred_rp))
 
-        # Tampilkan hasil prediksi
         st.success("✅ Hasil Prediksi Harga Mobil:")
         for label, harga in hasil_prediksi:
             st.write(f"**{label}:** Rp {harga:,.0f}")
@@ -116,4 +110,4 @@ with col_result:
 
 # Footer
 st.markdown("---")
-st.markdown("**Nama :** Muhammad Istiqlal  \n**NPM :** 51421006  \n**Skripsi Jurusan Informatika – Universitas Gunadarma**")
+st.markdown("**Nama :** Muhammad Istiqlal  \\n**NPM :** 51421006  \\n**Skripsi Jurusan Informatika – Universitas Gunadarma**")
