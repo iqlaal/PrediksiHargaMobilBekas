@@ -2,7 +2,7 @@ import streamlit as st
 import pickle
 import pandas as pd
 
-# Load model dan encoder (pastikan ini model terbaru sudah termasuk fitur 'month')
+# Load model dan encoder
 model = pickle.load(open('best_random_forest_model.sav', 'rb'))
 encoders = pickle.load(open('best_label_encoders.sav', 'rb'))
 
@@ -36,27 +36,25 @@ tax_rupiah = st.number_input("Biaya Pajak (Rp)", min_value=0, value=2000000)
 mpg_input = st.number_input("Konsumsi BBM (mpg)", min_value=0.0, value=40.0)
 enginesize_input = st.number_input("Ukuran Mesin (L)", min_value=0.0, value=1.5)
 
-# Input bulan prediksi dinamis
-months_to_predict = st.text_input(
-    "Masukkan bulan ke depan untuk prediksi, pisahkan dengan koma (contoh: 0,1,2,3,6,12,24)",
-    value="0,1,2,3,6,12,24"
+# Input pilih bulan prediksi (1 sampai 12)
+prediksi_bulan_ke = st.number_input(
+    "Pilih bulan ke depan untuk prediksi harga mobil (1-12):",
+    min_value=1,
+    max_value=12,
+    value=1,
+    step=1
 )
-try:
-    months_list = [int(m.strip()) for m in months_to_predict.split(",")]
-except Exception:
-    st.error("Format input bulan salah, masukkan angka dipisah koma.")
-    st.stop()
 
 # Validasi input
-def cek_input_valid(nilai):
+def cek_input_valid(nilai, nama):
     if nilai <= 0:
-        st.warning("⚠️ Harap lengkapi data, nilai tidak boleh <= 0.")
+        st.warning(f"⚠️ Harap lengkapi data, nilai '{nama}' tidak boleh <= 0.")
         st.stop()
 
-cek_input_valid(mileage_km)
-cek_input_valid(tax_rupiah)
-cek_input_valid(mpg_input)
-cek_input_valid(enginesize_input)
+cek_input_valid(mileage_km, 'Jarak Tempuh (km)')
+cek_input_valid(tax_rupiah, 'Biaya Pajak (Rp)')
+cek_input_valid(mpg_input, 'Konsumsi BBM (mpg)')
+cek_input_valid(enginesize_input, 'Ukuran Mesin (L)')
 
 # Konversi satuan
 mileage_mil = mileage_km / 1.60934
@@ -86,34 +84,37 @@ if st.button("Prediksi Harga"):
     }
     faktor_penyesuaian = brand_factors.get(brand_input, 0.7)
 
-    hasil_prediksi = []
+    # Prediksi harga saat ini (bulan 0) pakai model
+    input_df_now = pd.DataFrame([input_base])
+    for col in categorical_cols:
+        encoder = encoders.get(col)
+        val = input_df_now.at[0, col]
+        if val not in encoder.classes_:
+            st.error(f"⚠️ Nilai '{val}' tidak dikenali pada kolom '{col}'.")
+            st.stop()
+        input_df_now[col] = encoder.transform([val])
+    input_df_now = input_df_now[feature_order]
+    pred_gbp_now = model.predict(input_df_now)[0]
+    harga_saat_ini = int(pred_gbp_now * kurs_gbp_to_idr * faktor_penyesuaian)
 
-    for bulan in months_list:
-        input_data = input_base.copy()
-        input_data['month'] = bulan
+    st.success(f"✅ Harga Saat Ini: Rp {harga_saat_ini:,.0f}")
 
-        input_df = pd.DataFrame([input_data])
+    # Dummy depresiasi bulanan manual berdasarkan merk
+    brand_lower = brand_input.lower()
+    if brand_lower == 'hyundai':
+        monthly_depreciation = 0.01  # 1%
+    elif brand_lower == 'ford':
+        monthly_depreciation = 0.015  # 1.5%
+    else:
+        monthly_depreciation = 0.0125  # default
 
-        # Encoding kolom kategorikal
-        for col in categorical_cols:
-            encoder = encoders.get(col)
-            val = input_df.at[0, col]
-            if val not in encoder.classes_:
-                st.error(f"⚠️ Nilai '{val}' tidak dikenali pada kolom '{col}'.")
-                st.stop()
-            input_df[col] = encoder.transform([val])
+    # Hitung harga prediksi bulan ke-n (dummy)
+    harga_dummy = int(harga_saat_ini * ((1 - monthly_depreciation) ** prediksi_bulan_ke))
 
-        # Pastikan urutan kolom sesuai model
-        input_df = input_df[feature_order]
+    # Format label bulan untuk output
+    if prediksi_bulan_ke == 1:
+        label_bulan = "bulan depan"
+    else:
+        label_bulan = f"{prediksi_bulan_ke} bulan ke depan"
 
-        # Prediksi harga GBP
-        pred_gbp = model.predict(input_df)[0]
-        pred_rp = int(pred_gbp * kurs_gbp_to_idr * faktor_penyesuaian)
-
-        label = "Harga Saat Ini" if bulan == 0 else f"{bulan} bulan ke depan"
-        hasil_prediksi.append((label, pred_rp))
-
-    # Tampilkan hasil prediksi dengan bullet dan bold
-    st.success("✅ Hasil Prediksi Harga Mobil:")
-    for label, harga in hasil_prediksi:
-        st.markdown(f"🔹 **{label}:** Rp {harga:,.0f}")
+    st.success(f"✅ Prediksi Harga Mobil {label_bulan} adalah: Rp {harga_dummy:,.0f}")
