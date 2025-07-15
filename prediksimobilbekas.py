@@ -78,16 +78,22 @@ feature_order = list(model.feature_names_in_)
 
 if st.button("Prediksi Harga"):
     kurs_gbp_to_idr = 21000
-    brand_factors = {
-        'Hyundai': 0.55,
-        'Ford': 0.65
-    }
-    faktor_penyesuaian = brand_factors.get(brand_input, 0.7)
 
-     # Tambahkan debug print di sini:
+    # Gunakan lowercase untuk pencocokan
+    brand_input_lower = brand_input.strip().lower()
+
+    # Definisikan faktor dalam lowercase
+    brand_factors = {
+        'hyundai': 0.55,
+        'ford': 0.65
+    }
+
+    faktor_penyesuaian = brand_factors.get(brand_input_lower, 0.7)
+
+    # Tampilkan info debug
     st.write(f"📌 Faktor penyesuaian saat ini untuk {brand_input}: {faktor_penyesuaian}")
 
-    # Prediksi harga saat ini (bulan 0) pakai model
+    # Prediksi harga saat ini (bulan 0)
     input_df_now = pd.DataFrame([input_base])
     for col in categorical_cols:
         encoder = encoders.get(col)
@@ -103,21 +109,17 @@ if st.button("Prediksi Harga"):
     st.success(f"✅ Harga Saat Ini: Rp {harga_saat_ini:,.0f}")
 
     # Dummy depresiasi bulanan manual berdasarkan merk
-    brand_lower = brand_input.lower()
-    if brand_lower == 'hyundai':
+    if brand_input_lower == 'hyundai':
         monthly_depreciation = 0.01  # 1%
-    elif brand_lower == 'ford':
+    elif brand_input_lower == 'ford':
         monthly_depreciation = 0.015  # 1.5%
     else:
         monthly_depreciation = 0.0125  # default
 
-    # Hitung harga prediksi bulan ke-n (dummy)
+    # Hitung harga prediksi bulan ke-n
     harga_dummy = int(harga_saat_ini * ((1 - monthly_depreciation) ** prediksi_bulan_ke))
 
-    # Format label bulan untuk output
-    if prediksi_bulan_ke == 1:
-        label_bulan = "bulan depan"
-    else:
-        label_bulan = f"{prediksi_bulan_ke} bulan ke depan"
+    # Format label bulan
+    label_bulan = "bulan depan" if prediksi_bulan_ke == 1 else f"{prediksi_bulan_ke} bulan ke depan"
 
     st.success(f"✅ Prediksi Harga Mobil {label_bulan} adalah: Rp {harga_dummy:,.0f}")
