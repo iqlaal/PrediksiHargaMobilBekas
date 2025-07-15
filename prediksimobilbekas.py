@@ -79,7 +79,7 @@ feature_order = list(model.feature_names_in_)
 if st.button("Prediksi Harga"):
     kurs_gbp_to_idr = 21000
     brand_factors = {
-        'Hyundai': 0.75,
+        'Hyundai': 0.55,
         'Ford': 0.65
     }
     faktor_penyesuaian = brand_factors.get(brand_input, 0.7)
