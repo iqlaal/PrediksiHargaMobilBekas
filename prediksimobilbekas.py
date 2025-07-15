@@ -84,6 +84,9 @@ if st.button("Prediksi Harga"):
     }
     faktor_penyesuaian = brand_factors.get(brand_input, 0.7)
 
+     # Tambahkan debug print di sini:
+    st.write(f"📌 Faktor penyesuaian saat ini untuk {brand_input}: {faktor_penyesuaian}")
+
     # Prediksi harga saat ini (bulan 0) pakai model
     input_df_now = pd.DataFrame([input_base])
     for col in categorical_cols:
