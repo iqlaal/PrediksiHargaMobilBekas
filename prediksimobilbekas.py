@@ -2,19 +2,6 @@ import streamlit as st
 import pickle
 import pandas as pd
 
-# Fungsi format dan parsing angka dengan pemisah ribuan
-def format_number_with_separator(num_str):
-    digits_only = ''.join(filter(str.isdigit, num_str))
-    if digits_only == '':
-        return ''
-    return "{:,}".format(int(digits_only))
-
-def parse_number(num_str):
-    cleaned = num_str.replace(',', '').replace('.', '').replace(' ', '')
-    if cleaned == '':
-        return 0
-    return int(cleaned)
-
 # Load model dan encoder
 model = pickle.load(open('best_random_forest_model.sav', 'rb'))
 encoders = pickle.load(open('best_label_encoders.sav', 'rb'))
@@ -43,18 +30,9 @@ fueltype_options = list(encoders['fuelType'].classes_)
 
 year_input = st.number_input("Tahun Mobil", min_value=2011, max_value=2020, value=2015)
 transmission_input = st.selectbox("Jenis Transmisi", transmission_options)
-
-# Input jarak tempuh dengan text_input dan format ribuan
-mileage_str = st.text_input("Jarak Tempuh (km)", value="50,000")
-mileage_km = parse_number(mileage_str)
-
-# Input jenis bahan bakar
+mileage_km = st.number_input("Jarak Tempuh (km)", min_value=0, value=50000)
 fueltype_input = st.selectbox("Jenis Bahan Bakar", fueltype_options)
-
-# Input biaya pajak dengan text_input dan format ribuan
-tax_str = st.text_input("Biaya Pajak (Rp)", value="2,000,000")
-tax_rupiah = parse_number(tax_str)
-
+tax_rupiah = st.number_input("Biaya Pajak (Rp)", min_value=0, value=2000000)
 mpg_input = st.number_input("Konsumsi BBM (mpg)", min_value=0.0, value=32.0)
 enginesize_input = st.number_input("Ukuran Mesin (L)", min_value=0.0, value=1.5)
 
@@ -67,9 +45,8 @@ prediksi_bulan_ke = st.number_input(
     step=1
 )
 
-# Input budget user dengan text_input dan format ribuan
-budget_str = st.text_input("Masukkan budget Anda (Rp)", value="100,000,000")
-user_budget = parse_number(budget_str)
+# Input budget user
+user_budget = st.number_input("Masukkan budget Anda (Rp)", min_value=0, value=100_000_000, step=1_000_000)
 
 # Validasi input
 def cek_input_valid(nilai, nama):
