@@ -81,7 +81,6 @@ feature_order = list(model.feature_names_in_)
 
 if st.button("Prediksi Harga"):
     kurs_gbp_to_idr = 21000
-
     brand_input_lower = brand_input.strip().lower()
 
     brand_factors = {
@@ -106,6 +105,7 @@ if st.button("Prediksi Harga"):
 
     st.success(f"✅ Harga Saat Ini: Rp {harga_saat_ini:,.0f}")
 
+    # Depresiasi harga
     if brand_input_lower == 'hyundai':
         monthly_depreciation = 0.01
     elif brand_input_lower == 'ford':
@@ -128,3 +128,46 @@ if st.button("Prediksi Harga"):
         st.info(
             f"✅ Budget Anda: Rp {user_budget:,.0f} cukup untuk membeli mobil ini di {label_bulan}."
         )
+
+    # ===== Rekomendasi Alternatif =====
+    st.markdown("---")
+    st.subheader("🔎 Rekomendasi Mobil Alternatif dalam Budget Anda")
+
+    rekomendasi_list = []
+
+    for th in range(2011, year_input):  # Tahun lebih tua
+        models_same_brand = brand_model_df[brand_model_df['brand'] == brand_input]['model'].unique()
+        for m in models_same_brand:
+            temp_input = input_base.copy()
+            temp_input['model'] = m
+            temp_input['year'] = th
+
+            temp_df = pd.DataFrame([temp_input])
+            skip = False
+            for col in categorical_cols:
+                val = temp_df.at[0, col]
+                encoder = encoders[col]
+                if val not in encoder.classes_:
+                    skip = True
+                    break
+                temp_df[col] = encoder.transform([val])
+            if skip:
+                continue
+
+            temp_df = temp_df[feature_order]
+            pred_gbp = model.predict(temp_df)[0]
+            harga_rupiah = int(pred_gbp * kurs_gbp_to_idr * faktor_penyesuaian)
+            harga_prediksi = int(harga_rupiah * ((1 - monthly_depreciation) ** prediksi_bulan_ke))
+
+            if harga_prediksi <= user_budget:
+                rekomendasi_list.append({
+                    'Model': m,
+                    'Tahun': th,
+                    'Harga Prediksi': f"Rp {harga_prediksi:,.0f}"
+                })
+
+    if rekomendasi_list:
+        df_rekomendasi = pd.DataFrame(rekomendasi_list)
+        st.table(df_rekomendasi)
+    else:
+        st.write("❌ Tidak ada rekomendasi yang cocok dengan budget Anda untuk merek dan tipe yang lebih tua.")
