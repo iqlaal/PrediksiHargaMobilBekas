@@ -36,7 +36,7 @@ tax_rupiah = st.number_input("Biaya Pajak (Rp)", min_value=0, value=2000000)
 mpg_input = st.number_input("Konsumsi BBM (mpg)", min_value=0.0, value=32.0)
 enginesize_input = st.number_input("Ukuran Mesin (L)", min_value=0.0, value=1.5)
 
-# Input pilih bulan prediksi (1 sampai 12)
+# Input bulan prediksi
 prediksi_bulan_ke = st.number_input(
     "Pilih bulan ke depan untuk prediksi harga mobil (1-12):",
     min_value=1,
@@ -44,6 +44,9 @@ prediksi_bulan_ke = st.number_input(
     value=1,
     step=1
 )
+
+# Input budget user
+user_budget = st.number_input("Masukkan budget Anda (Rp)", min_value=0, value=100_000_000, step=1_000_000)
 
 # Validasi input
 def cek_input_valid(nilai, nama):
@@ -79,10 +82,8 @@ feature_order = list(model.feature_names_in_)
 if st.button("Prediksi Harga"):
     kurs_gbp_to_idr = 21000
 
-    # Gunakan lowercase untuk pencocokan
     brand_input_lower = brand_input.strip().lower()
 
-    # Definisikan faktor dalam lowercase
     brand_factors = {
         'hyundai': 0.55,
         'ford': 0.65
@@ -90,7 +91,6 @@ if st.button("Prediksi Harga"):
 
     faktor_penyesuaian = brand_factors.get(brand_input_lower, 0.7)
 
-    # Prediksi harga saat ini (bulan 0)
     input_df_now = pd.DataFrame([input_base])
     for col in categorical_cols:
         encoder = encoders.get(col)
@@ -100,23 +100,31 @@ if st.button("Prediksi Harga"):
             st.stop()
         input_df_now[col] = encoder.transform([val])
     input_df_now = input_df_now[feature_order]
+
     pred_gbp_now = model.predict(input_df_now)[0]
     harga_saat_ini = int(pred_gbp_now * kurs_gbp_to_idr * faktor_penyesuaian)
 
     st.success(f"✅ Harga Saat Ini: Rp {harga_saat_ini:,.0f}")
 
-    # Dummy depresiasi bulanan manual berdasarkan merk
     if brand_input_lower == 'hyundai':
-        monthly_depreciation = 0.01  # 1%
+        monthly_depreciation = 0.01
     elif brand_input_lower == 'ford':
-        monthly_depreciation = 0.015  # 1.5%
+        monthly_depreciation = 0.015
     else:
-        monthly_depreciation = 0.0125  # default
+        monthly_depreciation = 0.0125
 
-    # Hitung harga prediksi bulan ke-n
     harga_dummy = int(harga_saat_ini * ((1 - monthly_depreciation) ** prediksi_bulan_ke))
 
-    # Format label bulan
     label_bulan = "bulan depan" if prediksi_bulan_ke == 1 else f"{prediksi_bulan_ke} bulan ke depan"
-
     st.success(f"✅ Prediksi Harga Mobil {label_bulan} adalah: Rp {harga_dummy:,.0f}")
+
+    # Cek apakah budget cukup
+    if user_budget < harga_dummy:
+        st.error(
+            f"💰 Budget Anda: Rp {user_budget:,.0f} masih di bawah harga prediksi mobil ({label_bulan}): Rp {harga_dummy:,.0f}.\n\n"
+            "👉 Saran: Pilih mobil atau tipe lain, atau pertimbangkan tahun produksi yang lebih tua."
+        )
+    else:
+        st.info(
+            f"✅ Budget Anda: Rp {user_budget:,.0f} cukup untuk membeli mobil ini di {label_bulan}."
+        )
