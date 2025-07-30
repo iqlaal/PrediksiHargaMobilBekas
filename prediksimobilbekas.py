@@ -168,6 +168,7 @@ if st.button("Prediksi Harga"):
 
     if rekomendasi_list:
         df_rekomendasi = pd.DataFrame(rekomendasi_list)
+        df_rekomendasi.index = df_rekomendasi.index + 1  
         st.table(df_rekomendasi)
     else:
         st.write("❌ Tidak ada rekomendasi yang cocok dengan budget Anda untuk merek dan tipe yang lebih tua.")
