@@ -131,7 +131,7 @@ if st.button("Prediksi Harga"):
 
     # ===== Rekomendasi Alternatif =====
     st.markdown("---")
-    st.subheader("🔎 Rekomendasi Mobil Alternatif dalam Budget Anda Saat Ini")
+    st.subheader("🔎 Rekomendasi Mobil Alternatif dalam Budget Anda")
 
     rekomendasi_list = []
 
