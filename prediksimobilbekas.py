@@ -2,7 +2,7 @@ import streamlit as st
 import pickle
 import pandas as pd
 
-# ===== Fungsi Format Ribuan =====
+# ===== Fungsi Format =====
 def format_ribuan(val):
     try:
         val_int = int(str(val).replace(",", "").replace(".", ""))
@@ -15,6 +15,24 @@ def parse_angka(val):
         return int(str(val).replace(",", "").replace(".", ""))
     except:
         return 0
+
+# ===== Inisialisasi Session State =====
+if "mileage_km" not in st.session_state:
+    st.session_state.mileage_km = "50,000"
+if "tax_rupiah" not in st.session_state:
+    st.session_state.tax_rupiah = "2,000,000"
+if "user_budget" not in st.session_state:
+    st.session_state.user_budget = "100,000,000"
+
+# ===== Event Handler =====
+def update_mileage():
+    st.session_state.mileage_km = format_ribuan(st.session_state.mileage_km)
+
+def update_tax():
+    st.session_state.tax_rupiah = format_ribuan(st.session_state.tax_rupiah)
+
+def update_budget():
+    st.session_state.user_budget = format_ribuan(st.session_state.user_budget)
 
 # Load model dan encoder
 model = pickle.load(open('best_random_forest_model.sav', 'rb'))
@@ -45,13 +63,13 @@ fueltype_options = list(encoders['fuelType'].classes_)
 year_input = st.number_input("Tahun Mobil", min_value=2011, max_value=2020, value=2015)
 transmission_input = st.selectbox("Jenis Transmisi", transmission_options)
 
-# ===== Input dengan format ribuan =====
-mileage_km_str = st.text_input("Jarak Tempuh (km)", format_ribuan(50000))
+# ===== Input Real-Time Format Ribuan =====
+mileage_km_str = st.text_input("Jarak Tempuh (km)", key="mileage_km", on_change=update_mileage)
 mileage_km = parse_angka(mileage_km_str)
 
 fueltype_input = st.selectbox("Jenis Bahan Bakar", fueltype_options)
 
-tax_rupiah_str = st.text_input("Biaya Pajak (Rp)", format_ribuan(2000000))
+tax_rupiah_str = st.text_input("Biaya Pajak (Rp)", key="tax_rupiah", on_change=update_tax)
 tax_rupiah = parse_angka(tax_rupiah_str)
 
 mpg_input = st.number_input("Konsumsi BBM (mpg)", min_value=0.0, value=32.0)
@@ -66,11 +84,11 @@ prediksi_bulan_ke = st.number_input(
     step=1
 )
 
-# Input budget user (format ribuan)
-user_budget_str = st.text_input("Masukkan budget Anda (Rp)", format_ribuan(100000000))
+# Input budget user
+user_budget_str = st.text_input("Masukkan budget Anda (Rp)", key="user_budget", on_change=update_budget)
 user_budget = parse_angka(user_budget_str)
 
-# Validasi input
+# ===== Validasi Input =====
 def cek_input_valid(nilai, nama):
     if nilai <= 0:
         st.warning(f"⚠️ Harap lengkapi data, nilai '{nama}' tidak boleh <= 0.")
@@ -81,11 +99,11 @@ cek_input_valid(tax_rupiah, 'Biaya Pajak (Rp)')
 cek_input_valid(mpg_input, 'Konsumsi BBM (mpg)')
 cek_input_valid(enginesize_input, 'Ukuran Mesin (L)')
 
-# Konversi satuan
+# ===== Konversi Satuan =====
 mileage_mil = mileage_km / 1.60934
 tax_pound = tax_rupiah / 21000
 
-# Siapkan input dasar tanpa 'month'
+# ===== Siapkan Input Model =====
 input_base = {
     'brand': brand_input.strip(),
     'model': model_input.strip(),
@@ -101,6 +119,7 @@ input_base = {
 categorical_cols = ['brand', 'model', 'transmission', 'fuelType']
 feature_order = list(model.feature_names_in_)
 
+# ===== Prediksi =====
 if st.button("Prediksi Harga"):
     kurs_gbp_to_idr = 21000
     brand_input_lower = brand_input.strip().lower()
