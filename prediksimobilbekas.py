@@ -31,9 +31,14 @@ fueltype_options = list(encoders['fuelType'].classes_)
 year_input = st.number_input("Tahun Mobil", min_value=2011, max_value=2020, value=2015)
 transmission_input = st.selectbox("Jenis Transmisi", transmission_options)
 
-mileage_km = st.number_input("Jarak Tempuh (km)", min_value=0, value=50_000, format="%,d")
+mileage_km = st.number_input("Jarak Tempuh (km)", min_value=0, value=50000, step=1)
+st.caption(f"📍 Jarak Tempuh: {mileage_km:,} km")
+
 fueltype_input = st.selectbox("Jenis Bahan Bakar", fueltype_options)
-tax_rupiah = st.number_input("Biaya Pajak (Rp)", min_value=0, value=2_000_000, format="%,d")
+
+tax_rupiah = st.number_input("Biaya Pajak (Rp)", min_value=0, value=2000000, step=1000)
+st.caption(f"📍 Biaya Pajak: Rp {tax_rupiah:,}")
+
 mpg_input = st.number_input("Konsumsi BBM (mpg)", min_value=0.0, value=32.0)
 enginesize_input = st.number_input("Ukuran Mesin (L)", min_value=0.0, value=1.5)
 
@@ -46,7 +51,8 @@ prediksi_bulan_ke = st.number_input(
     step=1
 )
 
-user_budget = st.number_input("Masukkan budget Anda (Rp)", min_value=0, value=100_000_000, step=1_000_000, format="%,d")
+user_budget = st.number_input("Masukkan budget Anda (Rp)", min_value=0, value=100000000, step=1000000)
+st.caption(f"📍 Budget: Rp {user_budget:,}")
 
 # Validasi input
 def cek_input_valid(nilai, nama):
