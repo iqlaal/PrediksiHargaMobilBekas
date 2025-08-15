@@ -17,8 +17,7 @@ brand_options = sorted(brand_model_df['brand'].unique())
 
 st.set_page_config(page_title="Prediksi Harga Mobil Bekas", layout="centered")
 st.title("Prediksi Harga Mobil Bekas")
-st.write("Masukkan spesifikasi mobil dan bulan ke depan untuk prediksi harga.")
-st.write("Gunakan tanda koma sebagai pemisah ribuan pada Jarak Tempuh, Biaya Pajak, dan Budget (contoh: 50,000 atau 2,000,000).")
+st.write("Masukkan spesifikasi mobil dan bulan untuk prediksi harga.")
 
 # Input dasar
 brand_input = st.selectbox("Merek Mobil", brand_options)
