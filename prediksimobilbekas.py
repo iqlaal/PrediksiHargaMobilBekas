@@ -19,17 +19,12 @@ def parse_angka(val):
 # ===== Inisialisasi Session State =====
 if "mileage_km" not in st.session_state:
     st.session_state.mileage_km = "50,000"
-if "tax_rupiah" not in st.session_state:
-    st.session_state.tax_rupiah = "2,000,000"
 if "user_budget" not in st.session_state:
     st.session_state.user_budget = "100,000,000"
 
 # ===== Event Handler =====
 def update_mileage():
     st.session_state.mileage_km = format_ribuan(st.session_state.mileage_km)
-
-def update_tax():
-    st.session_state.tax_rupiah = format_ribuan(st.session_state.tax_rupiah)
 
 def update_budget():
     st.session_state.user_budget = format_ribuan(st.session_state.user_budget)
@@ -63,19 +58,14 @@ fueltype_options = list(encoders['fuelType'].classes_)
 year_input = st.number_input("Tahun Mobil", min_value=2011, max_value=2020, value=2015)
 transmission_input = st.selectbox("Jenis Transmisi", transmission_options)
 
-# ===== Input Real-Time Format Ribuan =====
+# ===== Input Real-Time Format Ribuan (Hanya Mileage dan Budget) =====
 mileage_km_str = st.text_input("Jarak Tempuh (km)", key="mileage_km", on_change=update_mileage)
 mileage_km = parse_angka(mileage_km_str)
 
 fueltype_input = st.selectbox("Jenis Bahan Bakar", fueltype_options)
 
-tax_rupiah_str = st.text_input("Biaya Pajak (Rp)", key="tax_rupiah", on_change=update_tax)
-tax_rupiah = parse_angka(tax_rupiah_str)
-
-mpg_input = st.number_input("Konsumsi BBM (mpg)", min_value=0.0, value=32.0)
 enginesize_input = st.number_input("Ukuran Mesin (L)", min_value=0.0, value=1.5)
 
-# Input bulan prediksi
 prediksi_bulan_ke = st.number_input(
     "Pilih bulan ke depan untuk prediksi harga mobil (1-12):",
     min_value=1,
@@ -84,7 +74,6 @@ prediksi_bulan_ke = st.number_input(
     step=1
 )
 
-# Input budget user
 user_budget_str = st.text_input("Masukkan budget Anda (Rp)", key="user_budget", on_change=update_budget)
 user_budget = parse_angka(user_budget_str)
 
@@ -95,9 +84,16 @@ def cek_input_valid(nilai, nama):
         st.stop()
 
 cek_input_valid(mileage_km, 'Jarak Tempuh (km)')
-cek_input_valid(tax_rupiah, 'Biaya Pajak (Rp)')
-cek_input_valid(mpg_input, 'Konsumsi BBM (mpg)')
 cek_input_valid(enginesize_input, 'Ukuran Mesin (L)')
+
+# ===== Ambil Pajak & MPG Otomatis =====
+default_row = brand_model_df[
+    (brand_model_df['brand'] == brand_input) &
+    (brand_model_df['model'] == model_input)
+].iloc[0]
+
+tax_rupiah = default_row['tax_default']
+mpg_input = default_row['mpg_default']
 
 # ===== Konversi Satuan =====
 mileage_mil = mileage_km / 1.60934
@@ -176,7 +172,7 @@ if st.button("Prediksi Harga"):
 
     rekomendasi_list = []
 
-    for th in range(2011, year_input):  # Tahun lebih tua
+    for th in range(2011, year_input):
         models_same_brand = brand_model_df[brand_model_df['brand'] == brand_input]['model'].unique()
         for m in models_same_brand:
             temp_input = input_base.copy()
