@@ -92,8 +92,8 @@ default_row = brand_model_df[
     (brand_model_df['model'] == model_input)
 ].iloc[0]
 
-tax_rupiah = default_row['tax_default']
-mpg_input = default_row['mpg_default']
+tax_rupiah = default_row['tax']
+mpg_input = default_row['mpg']
 
 # ===== Konversi Satuan =====
 mileage_mil = mileage_km / 1.60934
