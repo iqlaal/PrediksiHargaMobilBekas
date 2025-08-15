@@ -2,6 +2,20 @@ import streamlit as st
 import pickle
 import pandas as pd
 
+# ===== Fungsi Format Ribuan =====
+def format_ribuan(val):
+    try:
+        val_int = int(str(val).replace(",", "").replace(".", ""))
+        return f"{val_int:,}"
+    except:
+        return val
+
+def parse_angka(val):
+    try:
+        return int(str(val).replace(",", "").replace(".", ""))
+    except:
+        return 0
+
 # Load model dan encoder
 model = pickle.load(open('best_random_forest_model.sav', 'rb'))
 encoders = pickle.load(open('best_label_encoders.sav', 'rb'))
@@ -17,7 +31,7 @@ brand_options = sorted(brand_model_df['brand'].unique())
 
 st.set_page_config(page_title="Prediksi Harga Mobil Bekas", layout="centered")
 st.title("Prediksi Harga Mobil Bekas")
-st.write("Masukkan spesifikasi mobil dan bulan untuk prediksi harga.")
+st.write("Masukkan spesifikasi mobil dan bulan ke depan untuk prediksi harga.")
 
 # Input dasar
 brand_input = st.selectbox("Merek Mobil", brand_options)
@@ -31,10 +45,15 @@ fueltype_options = list(encoders['fuelType'].classes_)
 year_input = st.number_input("Tahun Mobil", min_value=2011, max_value=2020, value=2015)
 transmission_input = st.selectbox("Jenis Transmisi", transmission_options)
 
-# Use text_input for comma-separated input
-mileage_km_input = st.text_input("Jarak Tempuh (km)", value="50,000")
-tax_rupiah_input = st.text_input("Biaya Pajak (Rp)", value="2,000,000")
+# ===== Input dengan format ribuan =====
+mileage_km_str = st.text_input("Jarak Tempuh (km)", format_ribuan(50000))
+mileage_km = parse_angka(mileage_km_str)
+
 fueltype_input = st.selectbox("Jenis Bahan Bakar", fueltype_options)
+
+tax_rupiah_str = st.text_input("Biaya Pajak (Rp)", format_ribuan(2000000))
+tax_rupiah = parse_angka(tax_rupiah_str)
+
 mpg_input = st.number_input("Konsumsi BBM (mpg)", min_value=0.0, value=32.0)
 enginesize_input = st.number_input("Ukuran Mesin (L)", min_value=0.0, value=1.5)
 
@@ -47,27 +66,9 @@ prediksi_bulan_ke = st.number_input(
     step=1
 )
 
-# Input budget user
-user_budget_input = st.text_input("Masukkan budget Anda (Rp)", value="100,000,000")
-
-# Convert comma-separated input to integers
-try:
-    mileage_km = int(mileage_km_input.replace(',', ''))
-except ValueError:
-    st.warning("⚠️ Jarak Tempuh (km) harus berupa angka dengan tanda koma sebagai pemisah ribuan (contoh: 50,000).")
-    st.stop()
-
-try:
-    tax_rupiah = int(tax_rupiah_input.replace(',', ''))
-except ValueError:
-    st.warning("⚠️ Biaya Pajak (Rp) harus berupa angka dengan tanda koma sebagai pemisah ribuan (contoh: 2,000,000).")
-    st.stop()
-
-try:
-    user_budget = int(user_budget_input.replace(',', ''))
-except ValueError:
-    st.warning("⚠️ Budget Anda (Rp) harus berupa angka dengan tanda koma sebagai pemisah ribuan (contoh: 100,000,000).")
-    st.stop()
+# Input budget user (format ribuan)
+user_budget_str = st.text_input("Masukkan budget Anda (Rp)", format_ribuan(100000000))
+user_budget = parse_angka(user_budget_str)
 
 # Validasi input
 def cek_input_valid(nilai, nama):
