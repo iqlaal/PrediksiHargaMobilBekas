@@ -29,11 +29,11 @@ def update_mileage():
 def update_budget():
     st.session_state.user_budget = format_ribuan(st.session_state.user_budget)
 
-# Load model dan encoder
+# ===== Load model dan encoder =====
 model = pickle.load(open('best_random_forest_model.sav', 'rb'))
 encoders = pickle.load(open('best_label_encoders.sav', 'rb'))
 
-# Load dataframe brand-model mapping
+# ===== Load dataframe brand-model mapping =====
 with open('brand_model_mapping.pkl', 'rb') as f:
     brand_model_df = pickle.load(f)
 
@@ -46,7 +46,7 @@ st.set_page_config(page_title="Prediksi Harga Mobil Bekas", layout="centered")
 st.title("Prediksi Harga Mobil Bekas")
 st.write("Masukkan spesifikasi mobil dan bulan ke depan untuk prediksi harga.")
 
-# Input dasar
+# ===== Input dasar =====
 brand_input = st.selectbox("Merek Mobil", brand_options)
 filtered_models = brand_model_df.loc[brand_model_df['brand'] == brand_input, 'model'].unique()
 filtered_models = sorted([m.strip() for m in filtered_models])
@@ -58,7 +58,7 @@ fueltype_options = list(encoders['fuelType'].classes_)
 year_input = st.number_input("Tahun Mobil", min_value=2011, max_value=2020, value=2015)
 transmission_input = st.selectbox("Jenis Transmisi", transmission_options)
 
-# ===== Input Real-Time Format Ribuan (Hanya Mileage dan Budget) =====
+# ===== Input Real-Time Format Ribuan =====
 mileage_km_str = st.text_input("Jarak Tempuh (km)", key="mileage_km", on_change=update_mileage)
 mileage_km = parse_angka(mileage_km_str)
 
@@ -86,18 +86,8 @@ def cek_input_valid(nilai, nama):
 cek_input_valid(mileage_km, 'Jarak Tempuh (km)')
 cek_input_valid(enginesize_input, 'Ukuran Mesin (L)')
 
-# ===== Ambil Pajak & MPG Otomatis =====
-default_row = brand_model_df[
-    (brand_model_df['brand'] == brand_input) &
-    (brand_model_df['model'] == model_input)
-].iloc[0]
-
-tax_rupiah = default_row['tax']
-mpg_input = default_row['mpg']
-
-# ===== Konversi Satuan =====
+# ===== Konversi satuan =====
 mileage_mil = mileage_km / 1.60934
-tax_pound = tax_rupiah / 21000
 
 # ===== Siapkan Input Model =====
 input_base = {
@@ -107,8 +97,6 @@ input_base = {
     'transmission': transmission_input.strip(),
     'mileage': mileage_mil,
     'fuelType': fueltype_input.strip(),
-    'tax': tax_pound,
-    'mpg': mpg_input,
     'engineSize': enginesize_input
 }
 
@@ -193,8 +181,8 @@ if st.button("Prediksi Harga"):
 
             temp_df = temp_df[feature_order]
             pred_gbp = model.predict(temp_df)[0]
-            harga_rupiah = int(pred_gbp * kurs_gbp_to_idr * faktor_penyesuaian)
-            harga_prediksi = int(harga_rupiah * ((1 - monthly_depreciation) ** prediksi_bulan_ke))
+            harga_prediksi = int(pred_gbp * kurs_gbp_to_idr * faktor_penyesuaian)
+            harga_prediksi = int(harga_prediksi * ((1 - monthly_depreciation) ** prediksi_bulan_ke))
 
             if harga_prediksi <= user_budget:
                 rekomendasi_list.append({
