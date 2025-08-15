@@ -112,7 +112,7 @@ if st.button("Prediksi Harga"):
     brand_input_lower = brand_input.strip().lower()
 
     brand_factors = {
-        'hyundai': 0.65,
+        'hyundai': 0.62,
         'ford': 0.70
     }
 
