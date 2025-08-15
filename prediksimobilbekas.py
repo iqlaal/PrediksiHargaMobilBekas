@@ -90,7 +90,6 @@ cek_input_valid(enginesize_input, 'Ukuran Mesin (L)')
 mileage_mil = mileage_km / 1.60934
 
 # ===== Siapkan Input Model =====
-# Nilai default tax & mpg supaya model tetap jalan
 input_base = {
     'brand': brand_input.strip(),
     'model': model_input.strip(),
@@ -99,25 +98,41 @@ input_base = {
     'mileage': mileage_mil,
     'fuelType': fueltype_input.strip(),
     'engineSize': enginesize_input,
-    'tax': 0,    # default value
-    'mpg': 0     # default value
+    'tax': 0,
+    'mpg': 0
 }
 
 categorical_cols = ['brand', 'model', 'transmission', 'fuelType']
 feature_order = list(model.feature_names_in_)
 
+# ===== Harga Pasar Model (OLX / Mobil123) =====
+market_prices_idr = {
+    # Hyundai
+    'i10': 75000000, 'i20': 127000000, 'i30': 150000000, 'i40': 150000000,
+    'i800': 200000000, 'ix20': 120000000, 'ix35': 180000000, 'ioniq': 450000000,
+    'kona': 350000000, 'santa fe': 400000000, 'tucson': 300000000, 'veloster': 350000000,
+    # Ford
+    'b-max': 150000000, 'c-max': 175000000, 'ecosport': 125000000, 'edge': 300000000,
+    'fiesta': 45000000, 'focus': 67500000, 'galaxy': 250000000, 'grand c-max': 200000000,
+    'grand tourneo connect': 250000000, 'ka': 100000000, 'ka+': 125000000, 'kuga': 250000000,
+    'mondeo': 275000000, 'mustang': 1000000000, 'puma': 350000000, 's-max': 300000000,
+    'tourneo connect': 250000000, 'tourneo custom': 350000000
+}
+
+# ===== Fungsi Penyesuaian Harga =====
+def adjust_price_by_market(model_name, predicted_gbp, kurs_gbp_to_idr=21000):
+    model_key = model_name.strip().lower()
+    harga_prediksi = int(predicted_gbp * kurs_gbp_to_idr)
+    market_price = market_prices_idr.get(model_key)
+    if market_price:
+        faktor = market_price / harga_prediksi
+        harga_adjusted = int(harga_prediksi * faktor)
+        return harga_adjusted
+    else:
+        return harga_prediksi
+
 # ===== Prediksi =====
 if st.button("Prediksi Harga"):
-    kurs_gbp_to_idr = 21000
-    brand_input_lower = brand_input.strip().lower()
-
-    brand_factors = {
-        'hyundai': 0.55,
-        'ford': 0.65
-    }
-
-    faktor_penyesuaian = brand_factors.get(brand_input_lower, 0.7)
-
     input_df_now = pd.DataFrame([input_base])
     for col in categorical_cols:
         encoder = encoders.get(col)
@@ -129,11 +144,12 @@ if st.button("Prediksi Harga"):
     input_df_now = input_df_now[feature_order]
 
     pred_gbp_now = model.predict(input_df_now)[0]
-    harga_saat_ini = int(pred_gbp_now * kurs_gbp_to_idr * faktor_penyesuaian)
+    harga_saat_ini = adjust_price_by_market(model_input, pred_gbp_now)
 
     st.success(f"✅ Harga Saat Ini: Rp {harga_saat_ini:,.0f}")
 
     # Depresiasi harga
+    brand_input_lower = brand_input.strip().lower()
     if brand_input_lower == 'hyundai':
         monthly_depreciation = 0.01
     elif brand_input_lower == 'ford':
@@ -146,7 +162,6 @@ if st.button("Prediksi Harga"):
     label_bulan = "bulan depan" if prediksi_bulan_ke == 1 else f"{prediksi_bulan_ke} bulan ke depan"
     st.success(f"✅ Prediksi Harga Mobil {label_bulan} adalah: Rp {harga_dummy:,.0f}")
 
-    # Cek apakah budget cukup
     if user_budget < harga_dummy:
         st.error(
             f"💰 Budget Anda: Rp {user_budget:,.0f} masih di bawah harga prediksi mobil ({label_bulan}): Rp {harga_dummy:,.0f}.\n\n"
@@ -157,7 +172,6 @@ if st.button("Prediksi Harga"):
             f"✅ Budget Anda: Rp {user_budget:,.0f} cukup untuk membeli mobil ini di {label_bulan}."
         )
 
-    # ===== Rekomendasi Alternatif =====
     st.markdown("---")
     st.subheader("🔎 Rekomendasi Mobil Alternatif dalam Budget Anda")
 
@@ -184,7 +198,7 @@ if st.button("Prediksi Harga"):
 
             temp_df = temp_df[feature_order]
             pred_gbp = model.predict(temp_df)[0]
-            harga_prediksi = int(pred_gbp * kurs_gbp_to_idr * faktor_penyesuaian)
+            harga_prediksi = adjust_price_by_market(m, pred_gbp)
             harga_prediksi = int(harga_prediksi * ((1 - monthly_depreciation) ** prediksi_bulan_ke))
 
             if harga_prediksi <= user_budget:
