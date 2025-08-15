@@ -90,6 +90,7 @@ cek_input_valid(enginesize_input, 'Ukuran Mesin (L)')
 mileage_mil = mileage_km / 1.60934
 
 # ===== Siapkan Input Model =====
+# Nilai default tax & mpg supaya model tetap jalan
 input_base = {
     'brand': brand_input.strip(),
     'model': model_input.strip(),
@@ -97,7 +98,9 @@ input_base = {
     'transmission': transmission_input.strip(),
     'mileage': mileage_mil,
     'fuelType': fueltype_input.strip(),
-    'engineSize': enginesize_input
+    'engineSize': enginesize_input,
+    'tax': 0,    # default value
+    'mpg': 0     # default value
 }
 
 categorical_cols = ['brand', 'model', 'transmission', 'fuelType']
