@@ -18,6 +18,7 @@ brand_options = sorted(brand_model_df['brand'].unique())
 st.set_page_config(page_title="Prediksi Harga Mobil Bekas", layout="centered")
 st.title("Prediksi Harga Mobil Bekas")
 st.write("Masukkan spesifikasi mobil dan bulan ke depan untuk prediksi harga.")
+st.write("Gunakan tanda koma sebagai pemisah ribuan pada Jarak Tempuh, Biaya Pajak, dan Budget (contoh: 50,000 atau 2,000,000).")
 
 # Input dasar
 brand_input = st.selectbox("Merek Mobil", brand_options)
@@ -30,9 +31,11 @@ fueltype_options = list(encoders['fuelType'].classes_)
 
 year_input = st.number_input("Tahun Mobil", min_value=2011, max_value=2020, value=2015)
 transmission_input = st.selectbox("Jenis Transmisi", transmission_options)
-mileage_km = st.number_input("Jarak Tempuh (km)", min_value=0, value=50000)
+
+# Use text_input for comma-separated input
+mileage_km_input = st.text_input("Jarak Tempuh (km)", value="50,000")
+tax_rupiah_input = st.text_input("Biaya Pajak (Rp)", value="2,000,000")
 fueltype_input = st.selectbox("Jenis Bahan Bakar", fueltype_options)
-tax_rupiah = st.number_input("Biaya Pajak (Rp)", min_value=0, value=2000000)
 mpg_input = st.number_input("Konsumsi BBM (mpg)", min_value=0.0, value=32.0)
 enginesize_input = st.number_input("Ukuran Mesin (L)", min_value=0.0, value=1.5)
 
@@ -46,7 +49,26 @@ prediksi_bulan_ke = st.number_input(
 )
 
 # Input budget user
-user_budget = st.number_input("Masukkan budget Anda (Rp)", min_value=0, value=100000000, step=1000000)
+user_budget_input = st.text_input("Masukkan budget Anda (Rp)", value="100,000,000")
+
+# Convert comma-separated input to integers
+try:
+    mileage_km = int(mileage_km_input.replace(',', ''))
+except ValueError:
+    st.warning("⚠️ Jarak Tempuh (km) harus berupa angka dengan tanda koma sebagai pemisah ribuan (contoh: 50,000).")
+    st.stop()
+
+try:
+    tax_rupiah = int(tax_rupiah_input.replace(',', ''))
+except ValueError:
+    st.warning("⚠️ Biaya Pajak (Rp) harus berupa angka dengan tanda koma sebagai pemisah ribuan (contoh: 2,000,000).")
+    st.stop()
+
+try:
+    user_budget = int(user_budget_input.replace(',', ''))
+except ValueError:
+    st.warning("⚠️ Budget Anda (Rp) harus berupa angka dengan tanda koma sebagai pemisah ribuan (contoh: 100,000,000).")
+    st.stop()
 
 # Validasi input
 def cek_input_valid(nilai, nama):
